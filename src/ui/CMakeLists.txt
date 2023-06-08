@@ -17,6 +17,7 @@ qt_add_translation(SOURCES
     translations/de.ts
     translations/fr.ts
     translations/nl.ts
+    translations/tr.ts
 )
 add_library(ui STATIC
     ${SOURCES}
@@ -35,7 +36,7 @@ set_target_properties(ui PROPERTIES
     AUTOUIC ON
 )
 target_include_directories(ui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(ui controller Qt${QT_VERSION_MAJOR}::Svg)
+target_link_libraries(ui controller Qt${QT_VERSION_MAJOR}::Svg Qt${QT_VERSION_MAJOR}::DBus)
 if(${QT_VERSION_MAJOR} STREQUAL "6")
     find_package(Qt6 COMPONENTS SvgWidgets REQUIRED)
     target_link_libraries(ui Qt6::SvgWidgets)

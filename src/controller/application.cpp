@@ -104,7 +104,7 @@ void Application::loadTranslations(const QString& lang)
 {
     static const QStringList SUPPORTED_LANGS {
         QStringLiteral("en"), QStringLiteral("et"), QStringLiteral("fi"), QStringLiteral("hr"),
-        QStringLiteral("ru"), QStringLiteral("de"), QStringLiteral("fr"), QStringLiteral("nl")};
+        QStringLiteral("ru"), QStringLiteral("de"), QStringLiteral("fr"), QStringLiteral("nl"),QStringLiteral("tr")};
     QLocale locale;
     QString langSetting = QSettings().value(QStringLiteral("lang"), lang).toString();
     if (SUPPORTED_LANGS.contains(langSetting)) {
