@@ -33,15 +33,20 @@ namespace
 QPair<QString, QVariantMap> signHash(const ElectronicID& eid, const pcsc_cpp::byte_vector& pin,
                                      const QByteArray& docHash, const HashAlgorithm hashAlgo)
 {
-    const auto hashBytes = pcsc_cpp::byte_vector {docHash.begin(), docHash.end()};
-    const auto signature = eid.signWithSigningKey(pin, hashBytes, hashAlgo);
+    int algoLength = hashAlgo.hashByteLength();
+    int hashCount = docHash.length() / algoLength;
+    QByteArray signatures;
+    QVariantMap variantMap;
+    for(int i = 0; i < hashCount; i++) {
+        const auto hashBytes = pcsc_cpp::byte_vector {docHash.begin()+i*algoLength,docHash.begin()+(i+1)*algoLength};
+        const auto signature = eid.signWithSigningKey(pin, hashBytes, hashAlgo);
+        variantMap = signatureAlgoToVariantMap(signature.second);
 
-    const auto signatureBase64 =
-        QByteArray::fromRawData(reinterpret_cast<const char*>(signature.first.data()),
-                                int(signature.first.size()))
-            .toBase64();
+        signatures.push_back(QByteArray::fromRawData(reinterpret_cast<const char*>(signature.first.data()),
+                                                         int(signature.first.size())));
+    }
 
-    return {signatureBase64, signatureAlgoToVariantMap(signature.second)};
+    return {signatures.toBase64(), variantMap};
 }
 
 } // namespace
@@ -51,14 +56,14 @@ Sign::Sign(const CommandWithArguments& cmd) : CertificateReader(cmd)
     const auto& arguments = cmd.second;
 
     requireArgumentsAndOptionalLang(
-        {"hash", "hashFunction", "certificate", "origin", "hashCount"}, arguments,
+        {"hash", "hashFunction", "certificate", "origin"}, arguments,
         "\"hash\": \"<Base64-encoded document hash>\", "
         "\"hashFunction\": \"<the hash algorithm that was used for computing 'hash', any of "
             + HashAlgorithm::allSupportedAlgorithmNames()
             + ">\", \"certificate\": \"<Base64-encoded user eID certificate previously "
               "retrieved with get-cert>\", "
-              "\"origin\": \"<origin URL>\","
-              "\"hashCount\": \"Number of hashes to sign. Default value is 1.\"");
+              "\"origin\": \"<origin URL>\""
+              );
 
     validateAndStoreDocHashAndHashAlgo(arguments);
 
@@ -149,10 +154,7 @@ void Sign::validateAndStoreDocHashAndHashAlgo(const QVariantMap& args)
     }
     hashAlgo = HashAlgorithm(hashAlgoInput.toStdString());
 
-    hashCount = validateAndGetArgument<short>(QStringLiteral("hashCount"), args, true);
-
-
-    if (docHash.length() != int(hashAlgo.hashByteLength())) {
+    if (docHash.length() % int(hashAlgo.hashByteLength()) != 0 ) {
         THROW(CommandHandlerInputDataError,
               std::string(hashAlgo) + " hash must be " + std::to_string(hashAlgo.hashByteLength())
                   + " bytes long, but is " + std::to_string(docHash.length()) + " instead");
