@@ -51,13 +51,14 @@ Sign::Sign(const CommandWithArguments& cmd) : CertificateReader(cmd)
     const auto& arguments = cmd.second;
 
     requireArgumentsAndOptionalLang(
-        {"hash", "hashFunction", "certificate", "origin"}, arguments,
+        {"hash", "hashFunction", "certificate", "origin", "hashCount"}, arguments,
         "\"hash\": \"<Base64-encoded document hash>\", "
         "\"hashFunction\": \"<the hash algorithm that was used for computing 'hash', any of "
             + HashAlgorithm::allSupportedAlgorithmNames()
             + ">\", \"certificate\": \"<Base64-encoded user eID certificate previously "
               "retrieved with get-cert>\", "
-              "\"origin\": \"<origin URL>\"");
+              "\"origin\": \"<origin URL>\","
+              "\"hashCount\": \"Number of hashes to sign. Default value is 1.\"");
 
     validateAndStoreDocHashAndHashAlgo(arguments);
 
@@ -147,6 +148,9 @@ void Sign::validateAndStoreDocHashAndHashAlgo(const QVariantMap& args)
         THROW(CommandHandlerInputDataError, "hashFunction value is invalid");
     }
     hashAlgo = HashAlgorithm(hashAlgoInput.toStdString());
+
+    hashCount = validateAndGetArgument<short>(QStringLiteral("hashCount"), args, true);
+
 
     if (docHash.length() != int(hashAlgo.hashByteLength())) {
         THROW(CommandHandlerInputDataError,

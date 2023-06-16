@@ -48,4 +48,5 @@ private:
     QByteArray docHash;
     electronic_id::HashAlgorithm hashAlgo;
     QByteArray userEidCertificateFromArgs;
+    short hashCount;
 };
