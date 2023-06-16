@@ -2,6 +2,17 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de_DE">
 <context>
+    <name>Application</name>
+    <message>
+        <source>&amp;File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;About</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>CertificateButton</name>
     <message>
         <source>%1 Issuer: %2 Valid: %3 to %4</source>
@@ -51,7 +62,7 @@
     </message>
     <message>
         <source>Invalid PIN length</source>
-        <translation>Geçersiz PIN uzunluğu</translation
+        <translation>Geçersiz PIN uzunluğu</translation>
     </message>
     <message>
         <source>Technical error</source>
@@ -154,6 +165,11 @@
     <message>
         <source>Operation failed</source>
         <translation>İşlem başarısız oldu</translation>
+    </message>
+    <message>
+        <source>TR</source>
+        <comment>Active language</comment>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Card driver error. Please try again.</source>
@@ -270,8 +286,7 @@
     <message>
         <source>EN</source>
         <comment>Active language</comment>
-        <translation>TR</translation>
+        <translation type="vanished">TR</translation>
     </message>
-
 </context>
 </TS>

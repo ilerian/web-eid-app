@@ -15,21 +15,21 @@ cd "$PROJECT_ROOT/lib/libelectronic-id"
 
 cd "$PROJECT_ROOT"
 
-#BUILD_TYPE=RelWithDebInfo
-BUILD_TYPE=Release
+BUILD_TYPE=RelWithDebInfo
+#BUILD_TYPE=Release
 
 export QT_QPA_PLATFORM=offscreen
 export OPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1
 export QT_DIR=/usr/local/opt/qt6/lib/cmake/Qt6
 export BUILD_TYPE
-export BUILD_DIR=build
+export BUILD_DIR=cmake-build-relwithdebinfo
 #export BUILD_NUMBER=${{github.run_number}}
 export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
 export MAKEFLAGS=-j3
 export MACOSX_DEPLOYMENT_TARGET=10.15
 
-lupdate src/ -ts ./src/ui/translations/*.ts
-cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -B build -S .
-cmake --build build --config $BUILD_TYPE
-cmake --build build --config $BUILD_TYPE --target installer -- VERBOSE=1
-cmake --build build --config $BUILD_TYPE --target installer-safari -- VERBOSE=1
+#lupdate src/ -ts ./src/ui/translations/*.ts
+cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE  -B cmake-build-relwithdebinfo -S .
+cmake --build cmake-build-relwithdebinfo --config $BUILD_TYPE
+cmake --build cmake-build-relwithdebinfo --config $BUILD_TYPE --target installer -- VERBOSE=1
+cmake --build cmake-build-relwithdebinfo --config $BUILD_TYPE --target installer-safari -- VERBOSE=1
