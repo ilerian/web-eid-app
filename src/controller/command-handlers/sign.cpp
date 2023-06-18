@@ -33,11 +33,11 @@ namespace
 QPair<QString, QVariantMap> signHash(const ElectronicID& eid, const pcsc_cpp::byte_vector& pin,
                                      const QByteArray& docHash, const HashAlgorithm hashAlgo)
 {
-    int algoLength = hashAlgo.hashByteLength();
-    int hashCount = docHash.length() / algoLength;
+    size_t algoLength = hashAlgo.hashByteLength();
+    size_t hashCount = docHash.length() / algoLength;
     QByteArray signatures;
     QVariantMap variantMap;
-    for(int i = 0; i < hashCount; i++) {
+    for(size_t i = 0; i < hashCount; i++) {
         const auto hashBytes = pcsc_cpp::byte_vector {docHash.begin()+i*algoLength,docHash.begin()+(i+1)*algoLength};
         const auto signature = eid.signWithSigningKey(pin, hashBytes, hashAlgo);
         variantMap = signatureAlgoToVariantMap(signature.second);
