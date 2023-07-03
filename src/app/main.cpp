@@ -26,6 +26,12 @@
 
 #include <QTimer>
 
+QTextStream& qStdOut()
+{
+    static QTextStream ts(stdout);
+    return ts;
+}
+
 int main(int argc, char* argv[])
 {
     Q_INIT_RESOURCE(web_eid_resources);
@@ -45,6 +51,7 @@ int main(int argc, char* argv[])
     } catch (const ArgumentError& error) {
         // This error must go directly to cerr to avoid extra info from the logging system.
         std::cerr << error.what() << std::endl;
+        qCritical() << error.what();
     } catch (const std::exception& error) {
         qCritical() << error;
     }

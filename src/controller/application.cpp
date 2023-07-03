@@ -53,7 +53,7 @@ Application::Application(int& argc, char** argv, const QString& name) :
     setApplicationDisplayName(QStringLiteral("Imza Yeri Web eID"));
     setApplicationVersion(QStringLiteral(PROJECT_VERSION));
     setOrganizationDomain(QStringLiteral("imzayeri.com"));
-    setOrganizationName(QStringLiteral("Ilerian Ltd."));
+    setOrganizationName(QStringLiteral("ILERIAN"));
     setQuitOnLastWindowClosed(false);
 
     installTranslator(translator);
