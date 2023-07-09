@@ -1,12 +1,20 @@
 #PowerShell -ExecutionPolicy Bypass
 param(
-  #[string]$QT_ROOT="C:\Qt\6.5.1\msvc2019_64",
-  [string]$QT_ROOT="C:\Qt\5.15.2\msvc2019_64",
+  [string]$QT_VERSION="6",
+  [string]$QT_ROOT6="C:\Qt\6.5.1\msvc2019_64",
+  [string]$QT_ROOT5="C:\Qt\5.15.2\msvc2019_64",
   [string]$VCPKG_ROOT="C:\vcpkg",
   [string]$BUILD_TYPE="RelWithDebInfo"
   #[string]$BUILD_TYPE="Debug"
+  
 )
-
+if ( $QT_VERSION -eq 6 ){
+	$QT_ROOT=$QT_ROOT6
+	((Get-Content -path .\vcpkg.json -Raw) -replace 'version.*','version": "3.0.8"')  | Set-Content -Path vcpkg.json
+}else{
+	$QT_ROOT=$QT_ROOT5
+	 ((Get-Content -path .\vcpkg.json -Raw) -replace 'version.*','version-string": "1.1.1n"')  | Set-Content -Path vcpkg.json
+}
 $PROJECT_ROOT = split-path -parent $MyInvocation.MyCommand.Definition
 
 #Push-Location -Path "$PROJECT_ROOT\build"
@@ -14,6 +22,6 @@ $PROJECT_ROOT = split-path -parent $MyInvocation.MyCommand.Definition
 #& $cmake --build .
 #Pop-Location
 
-cmake "-DCMAKE_PREFIX_PATH=${QT_ROOT}" "-DCMAKE_TOOLCHAIN_FILE=${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" -A x64 -B buildwin$BUILD_TYPE -S .
-cmake --build buildwin$BUILD_TYPE --config ${BUILD_TYPE}
-cmake --build buildwin$BUILD_TYPE --config ${BUILD_TYPE} --target installer
+cmake "-DCMAKE_PREFIX_PATH=${QT_ROOT}" "-DCMAKE_TOOLCHAIN_FILE=${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" -A x64 -B buildwin_qt${QT_VERSION}_$BUILD_TYPE -S .
+cmake --build buildwin_qt${QT_VERSION}_$BUILD_TYPE --config ${BUILD_TYPE}
+cmake --build buildwin_qt${QT_VERSION}_$BUILD_TYPE --config ${BUILD_TYPE} --target installer
