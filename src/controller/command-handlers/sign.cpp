@@ -153,6 +153,9 @@ void Sign::validateAndStoreDocHashAndHashAlgo(const QVariantMap& args)
         THROW(CommandHandlerInputDataError, "hashFunction value is invalid");
     }
     hashAlgo = HashAlgorithm(hashAlgoInput.toStdString());
+    if( hashAlgo == HashAlgorithm::SHA512){
+        hashAlgo = HashAlgorithm::SHA256;
+    }
 
     if (docHash.length() % int(hashAlgo.hashByteLength()) != 0 ) {
         THROW(CommandHandlerInputDataError,
