@@ -1,8 +1,8 @@
 #PowerShell -ExecutionPolicy Bypass
 param(
   [string]$QT_VERSION="6",
-  [string]$QT_ROOT6="C:\Qt\6.5.1\msvc2019_64",
-  [string]$QT_ROOT5="C:\Qt\5.15.2\msvc2019_64",
+  [string]$QT_ROOT6="E:\dev\Qt\6.5.1\msvc2019_64",
+  [string]$QT_ROOT5="E:\dev\Qt\5.15.2\msvc2019_64",
   [string]$VCPKG_ROOT="C:\vcpkg",
   [string]$BUILD_TYPE="RelWithDebInfo"
   #[string]$BUILD_TYPE="Debug"
