@@ -11,7 +11,7 @@ endif()
 if($ENV{DIGPASS})
 	set(PASSPARAM $ENV{DIGPASS})
 else()
-    set(PASSPARAM "/s MY")
+    set(PASSPARAM /s MY)
 endif()
 project(web-eid VERSION 2.3.1.${BUILD_NUMBER})
 
