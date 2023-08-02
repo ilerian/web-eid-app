@@ -59,7 +59,7 @@ if(WIN32)
         COMMAND "$ENV{WIX}bin\\light.exe" "plugins.wixobj" -nologo -ext WixBalExtension -out "${BASE_FILE}.exe"
         WORKING_DIRECTORY $<TARGET_FILE_DIR:web-eid>
     )
-	message (SIGNCERT: ${SIGNCERT})
+	message (SIGNCERT: ${SIGNCERT}  ${PASSPARAM} )
     if(SIGNCERT)
         list(APPEND SIGNCMD signtool.exe sign /a /v /fd SHA256 /sha1 ${SIGNCERT} ${PASSPARAM}
             /du http://installer.id.ee /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /td SHA256)
