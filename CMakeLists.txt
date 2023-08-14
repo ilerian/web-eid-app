@@ -8,7 +8,7 @@ else()
     set(BUILD_NUMBER 0)
 endif()
 
-if(DEFINED $ENV{DIGPASS})
+if(DEFINED ENV{DIGPASS})
 	set(PASSPARAM $ENV{DIGPASS})
 	message (DIGPASS is defined)
 else()
