@@ -10,8 +10,10 @@ endif()
 
 if(DEFINED $ENV{DIGPASS})
 	set(PASSPARAM $ENV{DIGPASS})
+	message (DIGPASS is defined)
 else()
     set(PASSPARAM /s MY)
+	message (DIGPASS is NOT defined)
 endif()
 
 message (DIGPASS: $ENV{DIGPASS} PASSPARAM:${PASSPARAM})
