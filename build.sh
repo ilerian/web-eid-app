@@ -29,7 +29,7 @@ export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
 export MACOSX_DEPLOYMENT_TARGET=10.15
 
 #lupdate src/ -ts ./src/ui/translations/*.ts
-cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE  -B cmake-build-relwithdebinfo -S .
-cmake --build cmake-build-relwithdebinfo --config $BUILD_TYPE
-cmake --build cmake-build-relwithdebinfo --config $BUILD_TYPE --target installer -- VERBOSE=1
-#cmake --build cmake-build-relwithdebinfo --config $BUILD_TYPE --target installer-safari -- VERBOSE=1
+cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE  -B $BUILD_DIR -S .
+cmake --build $BUILD_DIR --config $BUILD_TYPE
+cmake --build $BUILD_DIR --config $BUILD_TYPE --target installer -- VERBOSE=1
+#cmake --build $BUILD_DIR --config $BUILD_TYPE --target installer-safari -- VERBOSE=1

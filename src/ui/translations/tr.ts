@@ -82,7 +82,7 @@
     </message>
     <message>
         <source>Enter PIN2 for signing</source>
-        <translation>İmzalamak için PIN2 girin</translation>
+        <translation>İmzalamak için PIN giriniz</translation>
     </message>
     <message>
         <source>Select a certificate</source>
