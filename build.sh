@@ -24,7 +24,7 @@ export QT_DIR=/usr/local/opt/qt6/lib/cmake/Qt6
 export BUILD_TYPE
 export BUILD_DIR=cmake-build-relwithdebinfo
 #export BUILD_NUMBER=${{github.run_number}}
-export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+#export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
 #export MAKEFLAGS=-j3
 export MACOSX_DEPLOYMENT_TARGET=10.15
 

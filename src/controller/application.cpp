@@ -128,6 +128,8 @@ CommandWithArgumentsPtr Application::parseArgs()
     parser.addOptions({{{"c", "command-line-mode"},
                         "Command-line mode, read commands from command line arguments instead of "
                         "standard input."},
+                       {{"a", "atr"},
+                        "List the ATR of the cards"},
                        parentWindow});
 
     static const auto COMMANDS = "'" + CMDLINE_GET_SIGNING_CERTIFICATE + "', '"
@@ -144,6 +146,7 @@ CommandWithArgumentsPtr Application::parseArgs()
 
     if (parser.isSet(QStringLiteral("command-line-mode"))) {
         const auto args = parser.positionalArguments();
+
         if (args.size() != 2) {
             throw ArgumentError("Provide two positional arguments in command-line mode.");
         }
@@ -160,6 +163,9 @@ CommandWithArgumentsPtr Application::parseArgs()
     if (parser.isSet(parentWindow)) {
         // https://bugs.chromium.org/p/chromium/issues/detail?id=354597#c2
         qDebug() << "Parent window handle is unused" << parser.value(parentWindow);
+    }
+    if ( parser.isSet( QStringLiteral("atr") )){
+        return std::make_unique<CommandWithArguments>(CommandType::ATR, QVariantMap());
     }
     if (arguments().size() == 1) {
         return std::make_unique<CommandWithArguments>(CommandType::ABOUT, QVariantMap());

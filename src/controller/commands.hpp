@@ -37,6 +37,7 @@ public:
         SIGN,
         QUIT,
         ABOUT,
+        ATR,
         NONE = -1
     };
 
@@ -56,6 +57,7 @@ private:
 extern const QString CMDLINE_GET_SIGNING_CERTIFICATE;
 extern const QString CMDLINE_AUTHENTICATE;
 extern const QString CMDLINE_SIGN;
+extern const QString CMDLINE_ATR;
 
 CommandType commandNameToCommandType(const QString& cmdName);
 
