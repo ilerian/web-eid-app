@@ -14,6 +14,12 @@ else()
     set(PASSPARAM /s MY)
 endif()
 
+if(DEFINED ENV{SIGNCERT})
+    set(SIGNCERT_PARAM $ENV{SIGNCERT})
+else()
+    set(SIGNCERT_PARAM "")
+endif()
+
 project(web-eid VERSION 2.3.1.${BUILD_NUMBER})
 
 set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
@@ -31,7 +37,7 @@ include(CPack)
 set(FIREFOX_UUID "{e68418bc-f2b0-4459-a9ea-3e72b6751b07}" CACHE STRING "Firefox Extension UUID")
 set(FIREFOX_URL "https://addons.mozilla.org/firefox/downloads/latest/web-eid-webextension/latest.xpi" CACHE STRING "Mozilla AMO URL")
 
-set(SIGNCERT "FAE250D2D7886ABDA43F8CE2B98F12C6CDD33FE9" CACHE STRING "Common name of certificate to used sign binaries, empty skips signing  (Windows/macOS)")
+set(SIGNCERT ${SIGNCERT_PARAM} CACHE STRING "Common name of certificate to used sign binaries, empty skips signing  (Windows/macOS)")
 set(CROSSSIGNCERT "" CACHE STRING "Common name of certificate to used cross sign binaries, empty skips signing (Windows)")
 set(SAFARI_PROVISIONPROFILE "" CACHE STRING "Provision profile to include in application (macOS)")
 
