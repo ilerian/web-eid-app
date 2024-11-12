@@ -1,9 +1,9 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
     xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
-  <Bundle Name="Web eID software" Version="$(var.MSI_VERSION)" Manufacturer="RIA"
-      UpgradeCode="a9bdddb0-cdb3-11eb-b8bc-0242ac130003"
-      Copyright="RIA" IconSourceFile="$(var.path)\appicon.ico" AboutUrl="http://www.id.ee"
+  <Bundle Name="Web eID software" Version="$(var.MSI_VERSION)" Manufacturer="ILERIAN"
+      UpgradeCode="203689ae-958d-4709-8cda-ba890843d056"
+      Copyright="ILERIAN" IconSourceFile="$(var.path)\appicon.ico" AboutUrl="https://www.imzayeri.com"
       Condition="(VersionNT >= v6.1)">
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkSidebarLicense">
       <bal:WixStandardBootstrapperApplication
@@ -15,13 +15,13 @@
         <Payload Name="1061\thm.wxl" SourceFile="$(var.path)\HyperlinkSidebarTheme.et.wxl"/>
     </BootstrapperApplicationRef>
 
-    <Variable Name="ChromeSupport" Persisted="yes" bal:Overridable="yes" Type="numeric" Value="1"/>
-    <Variable Name="EdgeSupport" Persisted="yes" bal:Overridable="yes" Type="numeric" Value="1"/>
-    <Variable Name="FirefoxSupport" Persisted="yes" bal:Overridable="yes" Type="numeric" Value="1"/>
+    <Variable Name="ChromeSupport" Persisted="yes" bal:Overridable="yes" Type="numeric" Value="0"/>
+    <Variable Name="EdgeSupport" Persisted="yes" bal:Overridable="yes" Type="numeric" Value="0"/>
+    <Variable Name="FirefoxSupport" Persisted="yes" bal:Overridable="yes" Type="numeric" Value="0"/>
     <Variable Name="ForceChromeExtensionActivation" Persisted="yes" bal:Overridable="yes" Type="numeric" Value="0"/>
     <Variable Name="ForceEdgeExtensionActivation" Persisted="yes" bal:Overridable="yes" Type="numeric" Value="0"/>
 
-    <util:ProductSearch Id="WebEIDInstalled" UpgradeCode="4f0e0fef-0dbc-481b-9d81-08921740f781"
+    <util:ProductSearch Id="WebEIDInstalled" UpgradeCode="91f189a9-57eb-45c6-a892-db12f350eded"
       Result="version" Variable="Installed"/>
     <util:RegistrySearch Variable="ChromeSupport" Condition="Installed" Result="exists" Root="HKLM"
       Key="SOFTWARE\Google\Chrome\Extensions\ncibgoaomkmdpilpocfeponihegamlic" Value="update_url"/>

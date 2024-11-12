@@ -31,18 +31,18 @@
 <?endif ?>
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Name="Web eID software" UpgradeCode="4f0e0fef-0dbc-481b-9d81-08921740f781"
-      Id="*" Language="1033" Version="$(var.MSI_VERSION)" Codepage="1251" Manufacturer="RIA">
+  <Product Name="Web eID software" UpgradeCode="91f189a9-57eb-45c6-a892-db12f350eded"
+      Id="*" Language="1033" Version="$(var.MSI_VERSION)" Codepage="1251" Manufacturer="ILERIAN">
     <Package Platform="$(var.Platform)" Keywords="Installer" InstallerVersion="405" Compressed="yes" InstallScope="perMachine" InstallPrivileges="elevated"/>
     <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
     <Icon Id="web_eid.exe" SourceFile="$(var.app_path)"/>
     <Property Id="ARPPRODUCTICON" Value="web_eid.exe"/>
     <Property Id="APPLICATIONNAME" Value="web-eid"/>
-    <Property Id="CHROMEINSTALL" Value="1"/>
+    <Property Id="CHROMEINSTALL" Value="0"/>
     <Property Id="CHROMEPOLICY" Value="0"/>
-    <Property Id="EDGEINSTALL" Value="1"/>
+    <Property Id="EDGEINSTALL" Value="0"/>
     <Property Id="EDGEPOLICY" Value="0"/>
-    <Property Id="FIREFOXINSTALL" Value="1"/>
+    <Property Id="FIREFOXINSTALL" Value="0"/>
     <MajorUpgrade AllowSameVersionUpgrades="yes" Schedule="afterInstallInitialize" DowngradeErrorMessage=
       "A newer version of [ProductName] is already installed. If you are trying to downgrade, please uninstall the newer version first."/>
     <Condition Message="[ProductName] requires Windows 8.1 or higher.">
