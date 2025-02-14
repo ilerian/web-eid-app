@@ -25,6 +25,10 @@ if(WIN32)
     else()
         get_filename_component(SSL_PATH "${OPENSSL_INCLUDE_DIR}/../bin" ABSOLUTE)
     endif()
+
+    # Define the destination path in the build directory
+    set(CARD_LIB_DESTINATION_PATH "${CMAKE_BINARY_DIR}/lib")
+
     set(WEBEID_PATH web-eid.exe)
     set(BASE_FILE $<TARGET_NAME:web-eid>_${PROJECT_VERSION}.${PLATFORM})
     list(APPEND CANDLE_CMD "$ENV{WIX}bin\\candle.exe" -nologo -arch ${PLATFORM}
@@ -45,14 +49,23 @@ if(WIN32)
         web-eid.wixobj WelcomeDlg2.wixobj WixUI_Minimal2.wixobj
         -dWixUIDialogBmp=${CMAKE_SOURCE_DIR}/install/dlgbmp.bmp
     )
+
+    # Add a custom command to copy the DLL file to the destination path
+    #add_custom_command(TARGET installer POST_BUILD
+    #        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${AKISP11_DLL_PATH} ${CARD_LIB_DESTINATION_PATH}
+    #)
+
     add_custom_target(installer DEPENDS web-eid
-        COMMAND ${CANDLE_CMD}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${AKISP11_DLL_PATH} ${CARD_LIB_DESTINATION_PATH}
+        COMMAND ${CANDLE_CMD} -dAKISP11_DLL_PATH=${AKISP11_DLL_PATH}
         COMMAND ${LIGHT_CMD} -o "${BASE_FILE}.msi"
         #Build MSI with QT
-        COMMAND ${CANDLE_CMD} -dqt_path=${qtCore_install_prefix} -dqt_version_major=${QT_VERSION_MAJOR}
+        COMMAND ${CANDLE_CMD} -dqt_path=${qtCore_install_prefix} -dqt_version_major=${QT_VERSION_MAJOR} -dAKISP11_DLL_PATH=${AKISP11_DLL_PATH}
         COMMAND ${LIGHT_CMD} -o "${BASE_FILE}.qt.msi"
         WORKING_DIRECTORY $<TARGET_FILE_DIR:web-eid>
     )
+
+
     add_custom_target(bundle
         COMMAND "$ENV{WIX}bin\\candle.exe" -nologo -ext WixBalExtension -ext WixUtilExtension -dwebeid="${BASE_FILE}"
             -dMSI_VERSION=${PROJECT_VERSION} -dpath="${CMAKE_SOURCE_DIR}/install" "${CMAKE_SOURCE_DIR}/install/plugins.wxs"

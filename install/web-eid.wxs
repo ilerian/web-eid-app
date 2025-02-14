@@ -107,6 +107,9 @@
 <?endif?>
 <?endif?>
           </Component>
+          <Component Id="Akisp11Dll" Guid="12345678-1234-1234-1234-123456789abc">
+               <File Source="$(var.AKISP11_DLL_PATH)" KeyPath="yes"/>
+          </Component>
           <Component Id="ChromeEdge" Transitive="yes">
             <Condition><![CDATA[(CHROMEINSTALL = 1 OR EDGEINSTALL = 1)]]></Condition>
             <File Source="$(var.json)"/>
@@ -181,6 +184,7 @@
 
     <Feature Id="Install" Level="1" Title="Web eID" Display="expand" ConfigurableDirectory="APPLICATIONFOLDER">
       <ComponentRef Id="Application"/>
+      <ComponentRef Id="Akisp11Dll"/>
       <ComponentRef Id="ChromeEdge"/>
       <ComponentRef Id="Chrome"/>
       <ComponentRef Id="ChromePolicy"/>
