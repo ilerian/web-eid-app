@@ -20,13 +20,13 @@ BEGIN
 	BEGIN
 		BLOCK "040904B0"
 		BEGIN
-			VALUE "CompanyName", "RIA"
-			VALUE "FileDescription", "Web eID app"
+			VALUE "CompanyName", "ILERIAN"
+			VALUE "FileDescription", "Imza Yeri Web eID app"
 			VALUE "FileVersion", VER_STR(PROJECT_VERSION_MAJOR.PROJECT_VERSION_MINOR.PROJECT_VERSION_PATCH+PROJECT_VERSION_TWEAK)
 			VALUE "InternalName", "web-eid"
-			VALUE "LegalCopyright", "Copyright (C) 2020-2023 Estonian Information System Authority"
+			VALUE "LegalCopyright", "Copyright (C) 2020-2023 Estonian Information System Authority, Ilerian Ltd."
 			VALUE "OriginalFilename", "web-eid.exe"
-			VALUE "ProductName", "Web eID app"
+			VALUE "ProductName", "Imza Yeri Web eID app"
 			VALUE "ProductVersion", VER_STR(PROJECT_VERSION_MAJOR.PROJECT_VERSION_MINOR.PROJECT_VERSION_PATCH+PROJECT_VERSION_TWEAK)
 		END
 	END

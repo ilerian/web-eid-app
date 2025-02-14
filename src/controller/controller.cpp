@@ -89,6 +89,11 @@ void Controller::run()
         case CommandType::ABOUT:
             WebEidUI::showAboutPage();
             return;
+        case CommandType::ATR:
+            qInfo() << "ATR:" << electronic_id::getATRList();
+            writeResponseToStdOut(true, {}, "quit");
+            emit quit();
+            return;
         case CommandType::QUIT:
             // If quit is requested, respond with empty JSON object and quit immediately.
             qInfo() << "Quit requested, exiting";

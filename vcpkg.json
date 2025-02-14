@@ -1,0 +1,32 @@
+{
+  "dependencies": [
+    "openssl",
+	"gtest"
+  ],
+  "overrides": [
+    {
+      "name": "openssl",
+      "version-string": "1.1.1n"
+    }
+  ],
+  "builtin-baseline": "dafef74af53669ef1cc9015f55e0ce809ead62aa"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

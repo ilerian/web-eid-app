@@ -71,7 +71,7 @@
     </message>
     <message>
         <source>Enter PIN2 for signing</source>
-        <translation>Enter PIN2 for signing</translation>
+        <translation>Enter PIN for signing</translation>
     </message>
     <message>
         <source>Select a certificate</source>

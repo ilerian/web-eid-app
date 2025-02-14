@@ -24,6 +24,7 @@
 
 #include "controllerchildthread.hpp"
 
+
 class WaitForCardThread : public ControllerChildThread
 {
     Q_OBJECT
@@ -55,6 +56,9 @@ private:
                 emit failure(QString(__func__) + ": empty available supported card list");
             }
         } catch (const electronic_id::AutoSelectFailed& failure) {
+            //log atr
+            std::string atrList = electronic_id::getATRList();
+            qWarning() << "Unsupported Card ATR:" << atrList;
             emit statusUpdate(toRetriableError(failure.reason()));
             return false;
         }

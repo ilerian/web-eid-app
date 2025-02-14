@@ -33,15 +33,20 @@ namespace
 QPair<QString, QVariantMap> signHash(const ElectronicID& eid, const pcsc_cpp::byte_vector& pin,
                                      const QByteArray& docHash, const HashAlgorithm hashAlgo)
 {
-    const auto hashBytes = pcsc_cpp::byte_vector {docHash.begin(), docHash.end()};
-    const auto signature = eid.signWithSigningKey(pin, hashBytes, hashAlgo);
+    size_t algoLength = hashAlgo.hashByteLength();
+    size_t hashCount = docHash.length() / algoLength;
+    QByteArray signatures;
+    QVariantMap variantMap;
+    for(size_t i = 0; i < hashCount; i++) {
+        const auto hashBytes = pcsc_cpp::byte_vector {docHash.begin()+i*algoLength,docHash.begin()+(i+1)*algoLength};
+        const auto signature = eid.signWithSigningKey(pin, hashBytes, hashAlgo);
+        variantMap = signatureAlgoToVariantMap(signature.second);
 
-    const auto signatureBase64 =
-        QByteArray::fromRawData(reinterpret_cast<const char*>(signature.first.data()),
-                                int(signature.first.size()))
-            .toBase64();
+        signatures.push_back(QByteArray::fromRawData(reinterpret_cast<const char*>(signature.first.data()),
+                                                         int(signature.first.size())));
+    }
 
-    return {signatureBase64, signatureAlgoToVariantMap(signature.second)};
+    return {signatures.toBase64(), variantMap};
 }
 
 } // namespace
@@ -57,7 +62,8 @@ Sign::Sign(const CommandWithArguments& cmd) : CertificateReader(cmd)
             + HashAlgorithm::allSupportedAlgorithmNames()
             + ">\", \"certificate\": \"<Base64-encoded user eID certificate previously "
               "retrieved with get-cert>\", "
-              "\"origin\": \"<origin URL>\"");
+              "\"origin\": \"<origin URL>\""
+              );
 
     validateAndStoreDocHashAndHashAlgo(arguments);
 
@@ -147,8 +153,11 @@ void Sign::validateAndStoreDocHashAndHashAlgo(const QVariantMap& args)
         THROW(CommandHandlerInputDataError, "hashFunction value is invalid");
     }
     hashAlgo = HashAlgorithm(hashAlgoInput.toStdString());
+    if( hashAlgo == HashAlgorithm::SHA512){
+        hashAlgo = HashAlgorithm::SHA256;
+    }
 
-    if (docHash.length() != int(hashAlgo.hashByteLength())) {
+    if (docHash.length() % int(hashAlgo.hashByteLength()) != 0 ) {
         THROW(CommandHandlerInputDataError,
               std::string(hashAlgo) + " hash must be " + std::to_string(hashAlgo.hashByteLength())
                   + " bytes long, but is " + std::to_string(docHash.length()) + " instead");

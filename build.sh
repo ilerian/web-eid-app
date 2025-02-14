@@ -24,12 +24,12 @@ export QT_DIR=/usr/local/opt/qt6/lib/cmake/Qt6
 export BUILD_TYPE
 export BUILD_DIR=cmake-build-relwithdebinfo
 #export BUILD_NUMBER=${{github.run_number}}
-export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
-export MAKEFLAGS=-j3
+#export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+#export MAKEFLAGS=-j3
 export MACOSX_DEPLOYMENT_TARGET=10.15
 
 #lupdate src/ -ts ./src/ui/translations/*.ts
-cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE  -B cmake-build-relwithdebinfo -S .
-cmake --build cmake-build-relwithdebinfo --config $BUILD_TYPE
-cmake --build cmake-build-relwithdebinfo --config $BUILD_TYPE --target installer -- VERBOSE=1
-cmake --build cmake-build-relwithdebinfo --config $BUILD_TYPE --target installer-safari -- VERBOSE=1
+cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE  -B $BUILD_DIR -S .
+cmake --build $BUILD_DIR --config $BUILD_TYPE
+cmake --build $BUILD_DIR --config $BUILD_TYPE --target installer -- VERBOSE=1
+#cmake --build $BUILD_DIR --config $BUILD_TYPE --target installer-safari -- VERBOSE=1
