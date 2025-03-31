@@ -24,7 +24,7 @@ BEGIN
 			VALUE "FileDescription", "Imza Yeri Web eID app"
 			VALUE "FileVersion", VER_STR(PROJECT_VERSION_MAJOR.PROJECT_VERSION_MINOR.PROJECT_VERSION_PATCH+PROJECT_VERSION_TWEAK)
 			VALUE "InternalName", "web-eid"
-			VALUE "LegalCopyright", "Copyright (C) 2020-2023 Estonian Information System Authority, Ilerian Ltd."
+			VALUE "LegalCopyright", "Copyright (C) 2020-2025 Estonian Information System Authority, Ilerian Technology Ltd."
 			VALUE "OriginalFilename", "web-eid.exe"
 			VALUE "ProductName", "Imza Yeri Web eID app"
 			VALUE "ProductVersion", VER_STR(PROJECT_VERSION_MAJOR.PROJECT_VERSION_MINOR.PROJECT_VERSION_PATCH+PROJECT_VERSION_TWEAK)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Estonian Information System Authority
+ * Copyright (c) 2021-2024 Estonian Information System Authority
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,23 +47,24 @@ CertificateWidgetInfo::CertificateWidgetInfo(QWidget* self) :
     icon(new QLabel(self)), info(new QLabel(self)), warnIcon(new QLabel(self)),
     warn(new QLabel(CertificateWidget::tr("Pin locked"), self))
 {
-    icon->setPixmap(QStringLiteral(":/images/id-card.svg"));
-    warnIcon->setPixmap(QStringLiteral(":/images/fatal.svg"));
-    if (qApp->isDarkTheme()) {
+    if (Application::isDarkTheme()) {
         icon->setPixmap(QStringLiteral(":/images/id-card_dark.svg"));
         warnIcon->setPixmap(QStringLiteral(":/images/fatal_dark.svg"));
+    } else {
+        icon->setPixmap(QStringLiteral(":/images/id-card.svg"));
+        warnIcon->setPixmap(QStringLiteral(":/images/fatal.svg"));
     }
     warnIcon->hide();
     warnIcon->installEventFilter(self);
     warn->setObjectName(QStringLiteral("warn"));
     warn->hide();
-    QHBoxLayout* layout = new QHBoxLayout(self);
+    auto* layout = new QHBoxLayout(self);
     layout->setContentsMargins(20, 0, 20, 0);
-    layout->setSpacing(20);
+    layout->setSpacing(10);
     layout->addWidget(icon);
     layout->addWidget(info, 1);
     layout->addWidget(warnIcon);
-    QHBoxLayout* warnLayout = new QHBoxLayout;
+    auto* warnLayout = new QHBoxLayout;
     warnLayout->setSpacing(6);
     warnLayout->addWidget(warnIcon);
     warnLayout->addWidget(warn);
@@ -73,6 +74,16 @@ CertificateWidgetInfo::CertificateWidgetInfo(QWidget* self) :
 CardCertificateAndPinInfo CertificateWidgetInfo::certificateInfo() const
 {
     return certAndPinInfo;
+}
+
+std::tuple<QString, QString, QString, QString> CertificateWidgetInfo::certData() const
+{
+    return {certAndPinInfo.certInfo.subject.toHtmlEscaped(),
+            certAndPinInfo.certificate.issuerInfo(QSslCertificate::CommonName)
+                .join(' ')
+                .toHtmlEscaped(),
+            certAndPinInfo.certificate.effectiveDate().date().toString(Qt::ISODate),
+            certAndPinInfo.certificate.expiryDate().date().toString(Qt::ISODate)};
 }
 
 void CertificateWidgetInfo::drawWarnIcon()
@@ -91,8 +102,9 @@ void CertificateWidgetInfo::setCertificateInfo(const CardCertificateAndPinInfo& 
 {
     warn->setText(CertificateWidget::tr("Pin locked"));
     certAndPinInfo = cardCertPinInfo;
-    const auto certInfo = cardCertPinInfo.certInfo;
-    QString warning, effectiveDate = certInfo.effectiveDate, expiryDate = certInfo.expiryDate;
+    const auto& certInfo = cardCertPinInfo.certInfo;
+    QString warning;
+    auto [subject, issuer, effectiveDate, expiryDate] = certData();
     if (certInfo.notEffective) {
         effectiveDate = displayInRed(effectiveDate);
         warning = displayInRed(CertificateWidget::tr(" (Not effective)"));
@@ -102,7 +114,7 @@ void CertificateWidgetInfo::setCertificateInfo(const CardCertificateAndPinInfo& 
         warning = displayInRed(CertificateWidget::tr(" (Expired)"));
     }
     info->setText(CertificateWidget::tr("<b>%1</b><br />Issuer: %2<br />Valid: %3 to %4%5")
-                      .arg(certInfo.subject, certInfo.issuer, effectiveDate, expiryDate, warning));
+                      .arg(subject, issuer, effectiveDate, expiryDate, warning));
     info->parentWidget()->setDisabled(certInfo.notEffective || certInfo.isExpired
                                       || cardCertPinInfo.pinInfo.pinIsBlocked);
     if (warning.isEmpty() && cardCertPinInfo.pinInfo.pinIsBlocked) {
@@ -141,8 +153,7 @@ void CertificateWidget::paintEvent(QPaintEvent* /*event*/)
 
 CertificateButton::CertificateButton(const CardCertificateAndPinInfo& cardCertPinInfo,
                                      QWidget* parent) :
-    QAbstractButton(parent),
-    CertificateWidgetInfo(this)
+    QAbstractButton(parent), CertificateWidgetInfo(this)
 {
     setCheckable(true);
     setAutoExclusive(true);
@@ -163,10 +174,8 @@ bool CertificateButton::eventFilter(QObject* object, QEvent* event)
 void CertificateButton::setCertificateInfo(const CardCertificateAndPinInfo& cardCertPinInfo)
 {
     CertificateWidgetInfo::setCertificateInfo(cardCertPinInfo);
-    const auto certInfo = cardCertPinInfo.certInfo;
-    setText(
-        tr("%1 Issuer: %2 Valid: %3 to %4")
-            .arg(certInfo.subject, certInfo.issuer, certInfo.effectiveDate, certInfo.expiryDate));
+    auto [subject, issuer, effectiveDate, expiryDate] = certData();
+    setText(tr("%1 Issuer: %2 Valid: %3 to %4").arg(subject, issuer, effectiveDate, expiryDate));
 }
 
 void CertificateButton::paintEvent(QPaintEvent* /*event*/)

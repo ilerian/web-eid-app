@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Estonian Information System Authority
+ * Copyright (c) 2020-2025 Estonian Information System Authority
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,14 @@
 #include "signauthutils.hpp"
 #include "utils/utils.hpp"
 
+#include <QScopeGuard>
+
 using namespace electronic_id;
 
 namespace
 {
 
-QPair<QString, QVariantMap> signHash(const ElectronicID& eid, const pcsc_cpp::byte_vector& pin,
+QPair<QString, QVariantMap> signHash(const ElectronicID& eid, pcsc_cpp::byte_vector&& pin,
                                      const QByteArray& docHash, const HashAlgorithm hashAlgo)
 {
     size_t algoLength = hashAlgo.hashByteLength();
@@ -38,8 +40,9 @@ QPair<QString, QVariantMap> signHash(const ElectronicID& eid, const pcsc_cpp::by
     QByteArray signatures;
     QVariantMap variantMap;
     for(size_t i = 0; i < hashCount; i++) {
+
         const auto hashBytes = pcsc_cpp::byte_vector {docHash.begin()+i*algoLength,docHash.begin()+(i+1)*algoLength};
-        const auto signature = eid.signWithSigningKey(pin, hashBytes, hashAlgo);
+        const auto signature = eid.signWithSigningKey(std::move(pin), hashBytes, hashAlgo);
         variantMap = signatureAlgoToVariantMap(signature.second);
 
         signatures.push_back(QByteArray::fromRawData(reinterpret_cast<const char*>(signature.first.data()),
@@ -101,16 +104,11 @@ void Sign::emitCertificatesReady(const std::vector<CardCertificateAndPinInfo>& c
 
 QVariantMap Sign::onConfirm(WebEidUI* window, const CardCertificateAndPinInfo& cardCertAndPin)
 {
-    auto pin = getPin(cardCertAndPin.cardInfo->eid().smartcard(), window);
-
     try {
-        const auto signature = signHash(cardCertAndPin.cardInfo->eid(), pin, docHash, hashAlgo);
-
-        // Erase PIN memory.
-        // TODO: Use a scope guard. Verify that the buffers are actually zeroed
-        // and no copies remain.
-        std::fill(pin.begin(), pin.end(), '\0');
-
+        pcsc_cpp::byte_vector pin;
+        pin.reserve(5 + 16); // Avoid realloc: apdu + pin padding
+        getPin(pin, cardCertAndPin.cardInfo->eid(), window);
+        const auto signature = signHash(cardCertAndPin.cardInfo->eid(), std::move(pin), docHash, hashAlgo);
         return {{QStringLiteral("signature"), signature.first},
                 {QStringLiteral("signatureAlgorithm"), signature.second}};
 
@@ -148,11 +146,12 @@ void Sign::validateAndStoreDocHashAndHashAlgo(const QVariantMap& args)
     docHash =
         QByteArray::fromBase64(validateAndGetArgument<QByteArray>(QStringLiteral("hash"), args));
 
-    QString hashAlgoInput = validateAndGetArgument<QString>(QStringLiteral("hashFunction"), args);
+    auto hashAlgoInput = validateAndGetArgument<QString>(QStringLiteral("hashFunction"), args);
     if (hashAlgoInput.size() > 8) {
         THROW(CommandHandlerInputDataError, "hashFunction value is invalid");
     }
     hashAlgo = HashAlgorithm(hashAlgoInput.toStdString());
+    //TODO: revisit the algorithm
     if( hashAlgo == HashAlgorithm::SHA512){
         hashAlgo = HashAlgorithm::SHA256;
     }

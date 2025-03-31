@@ -31,23 +31,21 @@ if(WIN32)
 
     set(WEBEID_PATH web-eid.exe)
     set(BASE_FILE $<TARGET_NAME:web-eid>_${PROJECT_VERSION}.${PLATFORM})
-    list(APPEND CANDLE_CMD "$ENV{WIX}bin\\candle.exe" -nologo -arch ${PLATFORM}
-        -dMSI_VERSION=${PROJECT_VERSION}
-        -dPlatform=${PLATFORM}
-        -dssl_path="${SSL_PATH}"
-        -dqt_suffix="$<$<CONFIG:Debug>:d>"
-        -djson=${CMAKE_CURRENT_BINARY_DIR}/eu.webeid.json
-        -djsonfirefox=${CMAKE_CURRENT_BINARY_DIR}/eu.webeid.firefox.json
-        -dFIREFOX_URL="${FIREFOX_URL}"
-        -dFIREFOX_UUID="${FIREFOX_UUID}"
-        -dapp_path=$<TARGET_FILE:web-eid>
+    set(WIX_CMD wix.exe build -nologo
+        -arch ${PLATFORM}
+        -ext WixToolset.UI.wixext
+        -bv WixUIDialogBmp=${CMAKE_SOURCE_DIR}/install/dlgbmp.bmp
+        -d MSI_VERSION=${PROJECT_VERSION}
+        -d ssl_path="${SSL_PATH}"
+        -d qt_suffix="$<$<CONFIG:Debug>:d>"
+        -d json=${CMAKE_CURRENT_BINARY_DIR}/eu.webeid.json
+        -d jsonfirefox=${CMAKE_CURRENT_BINARY_DIR}/eu.webeid.firefox.json
+        -d FIREFOX_URL="${FIREFOX_URL}"
+        -d FIREFOX_UUID="${FIREFOX_UUID}"
+        -d app_path=$<TARGET_FILE:web-eid>
         ${CMAKE_SOURCE_DIR}/install/web-eid.wxs
-        ${CMAKE_SOURCE_DIR}/install/WelcomeDlg2.wxs
-        ${CMAKE_SOURCE_DIR}/install/WixUI_Minimal2.wxs
-    )
-    list(APPEND LIGHT_CMD "$ENV{WIX}bin\\light.exe" -nologo -ext WixUIExtension
-        web-eid.wixobj WelcomeDlg2.wixobj WixUI_Minimal2.wixobj
-        -dWixUIDialogBmp=${CMAKE_SOURCE_DIR}/install/dlgbmp.bmp
+        ${CMAKE_SOURCE_DIR}/install/WelcomeDlg.wxs
+        ${CMAKE_SOURCE_DIR}/install/WixUI_Minimal.wxs
     )
 
     # Add a custom command to copy the DLL file to the destination path
@@ -57,25 +55,27 @@ if(WIN32)
 
     add_custom_target(installer DEPENDS web-eid
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${AKISP11_DLL_PATH} ${CARD_LIB_DESTINATION_PATH}
-        COMMAND ${CANDLE_CMD} -dAKISP11_DLL_PATH=${AKISP11_DLL_PATH}
-        COMMAND ${LIGHT_CMD} -o "${BASE_FILE}.msi"
+
+        COMMAND ${WIX_CMD} -o "${BASE_FILE}.msi"
         #Build MSI with QT
-        COMMAND ${CANDLE_CMD} -dqt_path=${qtCore_install_prefix} -dqt_version_major=${QT_VERSION_MAJOR} -dAKISP11_DLL_PATH=${AKISP11_DLL_PATH}
-        COMMAND ${LIGHT_CMD} -o "${BASE_FILE}.qt.msi"
+        COMMAND ${WIX_CMD} -dAKISP11_DLL_PATH=${AKISP11_DLL_PATH} -d qt_path=${qtCore_install_prefix} -o "${BASE_FILE}.qt.msi"
         WORKING_DIRECTORY $<TARGET_FILE_DIR:web-eid>
     )
-
-
-    add_custom_target(bundle
-        COMMAND "$ENV{WIX}bin\\candle.exe" -nologo -ext WixBalExtension -ext WixUtilExtension -dwebeid="${BASE_FILE}"
-            -dMSI_VERSION=${PROJECT_VERSION} -dpath="${CMAKE_SOURCE_DIR}/install" "${CMAKE_SOURCE_DIR}/install/plugins.wxs"
-        COMMAND "$ENV{WIX}bin\\light.exe" "plugins.wixobj" -nologo -ext WixBalExtension -out "${BASE_FILE}.exe"
+    add_custom_target(bundle DEPENDS installer
+        COMMAND wix.exe build -nologo
+            -ext WixToolset.BootstrapperApplications.wixext
+            -ext WixToolset.Util.wixext
+            -d webeid="${BASE_FILE}"
+            -d MSI_VERSION=${PROJECT_VERSION}
+            -d path="${CMAKE_SOURCE_DIR}/install"
+            "${CMAKE_SOURCE_DIR}/install/plugins.wxs"
+            -o "${BASE_FILE}.exe"
         WORKING_DIRECTORY $<TARGET_FILE_DIR:web-eid>
     )
 	#message (SIGNCERT: ${SIGNCERT} PASSPARAM:${PASSPARAM})
     if(SIGNCERT)
         list(APPEND SIGNCMD signtool.exe sign /a /v /fd SHA256 /sha1 ${SIGNCERT} ${PASSPARAM}
-            /du http://installer.id.ee /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /td SHA256)
+            /du http://installer.id.ee /tr http://timestamp.digicert.com /td SHA256)
         add_custom_command(TARGET web-eid POST_BUILD
             COMMAND ${SIGNCMD} "$<$<BOOL:${CROSSSIGNCERT}>:/ph;/ac;${CROSSSIGNCERT}>" $<TARGET_FILE:web-eid>
             COMMAND_EXPAND_LISTS
@@ -85,9 +85,9 @@ if(WIN32)
             WORKING_DIRECTORY $<TARGET_FILE_DIR:web-eid>
         )
         add_custom_command(TARGET bundle POST_BUILD
-            COMMAND "$ENV{WIX}bin\\insignia.exe" -nologo -ib "${BASE_FILE}.exe" -o "${BASE_FILE}.engine.exe"
+            COMMAND wix.exe burn detach -nologo "${BASE_FILE}.exe" -engine "${BASE_FILE}.engine.exe"
             COMMAND ${SIGNCMD} "${BASE_FILE}.engine.exe"
-            COMMAND "$ENV{WIX}bin\\insignia.exe" -nologo -ab "${BASE_FILE}.engine.exe" "${BASE_FILE}.exe" -o "${BASE_FILE}.exe"
+            COMMAND wix.exe burn reattach -nologo "${BASE_FILE}.exe" -engine "${BASE_FILE}.engine.exe" -o "${BASE_FILE}.exe"
             COMMAND ${SIGNCMD} "${BASE_FILE}.exe"
             COMMAND del "${BASE_FILE}.engine.exe"
             WORKING_DIRECTORY $<TARGET_FILE_DIR:web-eid>
@@ -133,22 +133,10 @@ elseif(APPLE)
             --version "${PROJECT_VERSION}" $<TARGET_NAME:web-eid>-chrome_${PROJECT_VERSION}.pkg
         COMMAND_EXPAND_LISTS
     )
-    add_custom_target(installer-chrome-policy
-        COMMAND rm -rf root_chrome_policy root_chrome_policy_scripts
-        COMMAND mkdir -p root_chrome_policy root_chrome_policy_scripts
-        COMMAND cp ${CMAKE_SOURCE_DIR}/install/macos-chrome-policy.plist root_chrome_policy_scripts/chrome-policy.plist
-        COMMAND cp ${CMAKE_SOURCE_DIR}/install/macos-postinstall-chrome-policy root_chrome_policy_scripts/postinstall
-        COMMAND /bin/sh -c "\"$<$<BOOL:${SIGNCERT}>:security;cms;-S;-N;Developer ID Application: ${SIGNCERT};-i;${CMAKE_SOURCE_DIR}/install/macos-chrome-policy.plist;-o;root_chrome_policy_scripts/chrome-policy.plist>\""
-        COMMAND pkgbuild --root root_chrome_policy --scripts root_chrome_policy_scripts --identifier "eu.web-eid.$<TARGET_NAME:web-eid>-chrome-policy"
-            "$<$<BOOL:${SIGNCERT}>:--sign;${SIGNCERT}>"
-            --version "${PROJECT_VERSION}" $<TARGET_NAME:web-eid>-chrome-policy_${PROJECT_VERSION}.pkg
-        COMMAND_EXPAND_LISTS
-    )
-    add_custom_target(installer DEPENDS installer-chrome installer-chrome-policy installer-firefox
+    add_custom_target(installer DEPENDS installer-chrome installer-firefox
         COMMAND mkdir -p packages
         COMMAND cp web-eid-native_*.pkg packages/web-eid-native.pkg
         COMMAND cp web-eid-chrome_*.pkg packages/web-eid-chrome.pkg
-        COMMAND cp web-eid-chrome-policy_*.pkg packages/web-eid-chrome-policy.pkg
         COMMAND cp web-eid-firefox_*.pkg packages/web-eid-firefox.pkg
         COMMAND productbuild --distribution ${CMAKE_SOURCE_DIR}/install/distribution.xml
             "$<$<BOOL:${SIGNCERT}>:--sign;Developer ID Installer: ${SIGNCERT}>" --resources ${CMAKE_SOURCE_DIR}/install/
@@ -176,11 +164,14 @@ elseif(APPLE)
         )
     endif()
 else()
+    option(BUNDLE_XPI "Download and bundle the Firefox extension" OFF)
     include(GNUInstallDirs)
-    file(DOWNLOAD ${FIREFOX_URL} ${CMAKE_CURRENT_BINARY_DIR}/${FIREFOX_UUID}.xpi)
+    if (BUNDLE_XPI)
+      file(DOWNLOAD ${FIREFOX_URL} ${CMAKE_CURRENT_BINARY_DIR}/${FIREFOX_UUID}.xpi)
+    endif()
     set(WEBEID_PATH ${CMAKE_INSTALL_FULL_BINDIR}/web-eid)
     install(TARGETS web-eid DESTINATION ${CMAKE_INSTALL_BINDIR})
-    if(EXISTS "/etc/debian_version")
+    if(EXISTS /etc/debian_version)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eu.webeid.firefox.json
             DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/mozilla/native-messaging-hosts RENAME eu.webeid.json)
     else()
@@ -189,12 +180,20 @@ else()
     endif()
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eu.webeid.json
         DESTINATION ${CMAKE_INSTALL_DATADIR}/web-eid)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eu.webeid.json
+        DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/chromium/native-messaging-hosts)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eu.webeid.json
+        DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/opt/chrome/native-messaging-hosts)
     install(FILES ${CMAKE_SOURCE_DIR}/install/ncibgoaomkmdpilpocfeponihegamlic.json
         DESTINATION ${CMAKE_INSTALL_DATADIR}/google-chrome/extensions)
+    install(FILES ${CMAKE_SOURCE_DIR}/install/ncibgoaomkmdpilpocfeponihegamlic.json
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/chromium/extensions)
     install(FILES ${CMAKE_SOURCE_DIR}/install/web-eid.desktop
         DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${FIREFOX_UUID}.xpi
-            DESTINATION ${CMAKE_INSTALL_DATADIR}/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384})
+    if (BUNDLE_XPI)
+      install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${FIREFOX_UUID}.xpi
+              DESTINATION ${CMAKE_INSTALL_DATADIR}/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384})
+    endif()
     foreach(RES 16 32 128 256 512)
         install(
             FILES ${CMAKE_SOURCE_DIR}/install/appicon_${RES}.png

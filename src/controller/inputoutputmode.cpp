@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Estonian Information System Authority
+ * Copyright (c) 2020-2024 Estonian Information System Authority
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -71,7 +71,6 @@ CommandWithArgumentsPtr readCommandFromStdin()
     const auto messageLength = readMessageLength(std::cin);
 
     if (messageLength < 5) {
-        // FIXME: Pass errors back up to caller in stdin mode.
         throw std::invalid_argument("readCommandFromStdin: Message length is "
                                     + std::to_string(messageLength) + ", at least 5 required");
     }
@@ -88,7 +87,6 @@ CommandWithArgumentsPtr readCommandFromStdin()
     const auto json = QJsonDocument::fromJson(message);
 
     if (!json.isObject()) {
-        // FIXME: Pass errors back up to caller in stdin mode.
         throw std::invalid_argument("readCommandFromStdin: Invalid JSON, not an object");
     }
 
@@ -97,7 +95,6 @@ CommandWithArgumentsPtr readCommandFromStdin()
     const auto arguments = jsonObject["arguments"];
 
     if (!command.isString() || !arguments.isObject()) {
-        // FIXME: Pass errors back up to caller in stdin mode.
         throw std::invalid_argument("readCommandFromStdin: Invalid JSON, the main object does not "
                                     "contain a 'command' string and 'arguments' object");
     }

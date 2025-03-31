@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Estonian Information System Authority
+ * Copyright (c) 2020-2024 Estonian Information System Authority
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,8 +39,6 @@ using namespace electronic_id;
 namespace
 {
 
-// TODO: Should we use more detailed error codes? E.g. report input data error back to the website
-// etc.
 const QString RESP_TECH_ERROR = QStringLiteral("ERR_WEBEID_NATIVE_FATAL");
 const QString RESP_USER_CANCEL = QStringLiteral("ERR_WEBEID_USER_CANCELLED");
 
@@ -359,7 +357,8 @@ void Controller::onCriticalFailure(const QString& error)
 {
     qCritical() << "Exiting due to command" << std::string(commandType())
                 << "fatal error:" << error;
-    _result = makeErrorObject(RESP_TECH_ERROR, error);
+    _result =
+        makeErrorObject(RESP_TECH_ERROR, QStringLiteral("Technical error, see application logs"));
     writeResponseToStdOut(isInStdinMode, _result, commandType());
     disposeUI();
     WebEidUI::showFatalError();

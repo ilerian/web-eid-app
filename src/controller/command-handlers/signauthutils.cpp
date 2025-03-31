@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Estonian Information System Authority
+ * Copyright (c) 2020-2024 Estonian Information System Authority
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,11 +20,11 @@
  * SOFTWARE.
  */
 
+#include "utils/erasedata.hpp"
 #include "signauthutils.hpp"
 
 #include "ui.hpp"
 #include "commandhandler.hpp"
-#include "utils/utils.hpp"
 
 using namespace electronic_id;
 
@@ -67,40 +67,28 @@ template QString validateAndGetArgument<QString>(const QString& argName, const Q
 template QByteArray validateAndGetArgument<QByteArray>(const QString& argName,
                                                        const QVariantMap& args, bool allowNull);
 
-template <typename T, typename C>
-inline void eraseData(T& data)
+void getPin(pcsc_cpp::byte_vector& pin, const ElectronicID& eid, WebEidUI* window)
 {
-    // According to docs, constData() never causes a deep copy to occur, so we can abuse it
-    // to overwrite the underlying buffer since the underlying data is not really const.
-    C* chars = const_cast<C*>(data.constData());
-    for (int i = 0; i < data.length(); ++i) {
-        chars[i] = '\0';
-    }
-}
-
-pcsc_cpp::byte_vector getPin(const pcsc_cpp::SmartCard& card, WebEidUI* window)
-{
-    // Doesn't apply to PIN pads.
-    if (card.readerHasPinPad()) {
-        return {};
+    // If the reader has a PIN pad or when enternal PIN dialog is used, do nothing.
+    if (eid.smartcard().readerHasPinPad() || eid.providesExternalPinDialog()) {
+        return;
     }
 
     REQUIRE_NON_NULL(window)
 
-    auto pin = window->getPin();
-    if (pin.isEmpty()) {
+    QString pinQStr = window->getPin();
+    if (pinQStr.isEmpty()) {
         THROW(ProgrammingError, "Empty PIN");
     }
 
-    // TODO: Avoid making copies of the PIN in memory.
-    auto pinQByteArray = pin.toUtf8();
-    auto pinBytes = pcsc_cpp::byte_vector {pinQByteArray.begin(), pinQByteArray.end()};
+    uint len = pinQStr.length();
+    pin.resize(len);
 
-    // TODO: Verify that the buffers are actually zeroed and no copies remain.
-    eraseData<QString, QChar>(pin);
-    eraseData<QByteArray, char>(pinQByteArray);
+    for (uint i = 0; i < len; i++) {
+        pin[i] = pinQStr[i].unicode() & 0xff;
+    }
 
-    return pinBytes;
+    eraseData(pinQStr);
 }
 
 QVariantMap signatureAlgoToVariantMap(const SignatureAlgorithm signatureAlgo)

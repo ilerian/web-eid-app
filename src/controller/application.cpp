@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Estonian Information System Authority
+ * Copyright (c) 2021-2024 Estonian Information System Authority
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@
 #include <QPalette>
 #include <QProcess>
 #include <QSettings>
+#include <QStyleHints>
 #include <QTranslator>
 
 inline CommandWithArguments::second_type parseArgumentJson(const QString& argumentStr)
@@ -74,18 +75,17 @@ Application::Application(int& argc, char** argv, const QString& name) :
 #endif
 }
 
-#ifndef Q_OS_MAC
 bool Application::isDarkTheme()
 {
-#ifdef Q_OS_WIN
-    QSettings settings(
-        "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-        QSettings::NativeFormat);
-    return settings.value("AppsUseLightTheme", 1).toInt() == 0;
-#elif 0 // Disabled as there is currently no straightforward way to detect dark mode in Linux.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    return styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+#elif defined(Q_OS_UNIX)
+    // There is currently no straightforward way to detect dark mode in Linux, but this works for
+    // supported OS-s.
     static const bool isDarkTheme = [] {
         QProcess p;
-        p.start(QStringLiteral("gsettings"), {"get", "org.gnome.desktop.interface", "gtk-theme"});
+        p.start(QStringLiteral("gsettings"),
+                {"get", "org.gnome.desktop.interface", "color-scheme"});
         if (p.waitForFinished()) {
             return p.readAllStandardOutput().contains("dark");
         }
@@ -94,17 +94,15 @@ bool Application::isDarkTheme()
         return text_hsv_value > bg_hsv_value;
     }();
     return isDarkTheme;
-#else
-    return false;
 #endif
 }
-#endif
 
 void Application::loadTranslations(const QString& lang)
 {
     static const QStringList SUPPORTED_LANGS {
         QStringLiteral("en"), QStringLiteral("et"), QStringLiteral("fi"), QStringLiteral("hr"),
-        QStringLiteral("ru"), QStringLiteral("de"), QStringLiteral("fr"), QStringLiteral("nl"),QStringLiteral("tr")};
+        QStringLiteral("ru"), QStringLiteral("de"), QStringLiteral("fr"), QStringLiteral("nl"),
+        QStringLiteral("cs"), QStringLiteral("sk"), QStringLiteral("tr")};
     QLocale locale;
     QString langSetting = QSettings().value(QStringLiteral("lang"), lang).toString();
     if (SUPPORTED_LANGS.contains(langSetting)) {
@@ -115,9 +113,16 @@ void Application::loadTranslations(const QString& lang)
 
 CommandWithArgumentsPtr Application::parseArgs()
 {
+    // On Windows Chrome, the native messaging host is also passed a command line argument with a
+    // handle to the calling Chrome native window: --parent-window=<decimal handle value>.
+    // We don't use it, but need to support it to avoid unknown option errors.
     QCommandLineOption parentWindow(QStringLiteral("parent-window"),
                                     QStringLiteral("Parent window handle (unused)"),
                                     QStringLiteral("parent-window"));
+
+    QCommandLineOption aboutArgument(QStringLiteral("about"),
+                                     QStringLiteral("Show Web-eID about window"));
+
     QCommandLineParser parser;
     parser.setApplicationDescription(QStringLiteral(
         "Application that communicates with the Web eID browser extension via standard input and "
@@ -128,6 +133,7 @@ CommandWithArgumentsPtr Application::parseArgs()
     parser.addOptions({{{"c", "command-line-mode"},
                         "Command-line mode, read commands from command line arguments instead of "
                         "standard input."},
+                       aboutArgument,
                        {{"a", "atr"},
                         "List the ATR of the cards"},
                        parentWindow});
@@ -167,9 +173,18 @@ CommandWithArgumentsPtr Application::parseArgs()
     if ( parser.isSet( QStringLiteral("atr") )){
         return std::make_unique<CommandWithArguments>(CommandType::ATR, QVariantMap());
     }
+    if (parser.isSet(aboutArgument)) {
+        return std::make_unique<CommandWithArguments>(CommandType::ABOUT, QVariantMap());
+    }
+    // In Linux, when the application is launched via xdg-desktop-portal from a browser that runs
+    // inside a Snap/Flatpack/other container, it doesn't receive the extension origin command-line
+    // argument. Hence, a special case is required to run the application in input-output mode
+    // instead of opening the about window in Linux.
+#ifndef Q_OS_LINUX
     if (arguments().size() == 1) {
         return std::make_unique<CommandWithArguments>(CommandType::ABOUT, QVariantMap());
     }
+#endif
     return nullptr;
 }
 

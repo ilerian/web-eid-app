@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Estonian Information System Authority
+ * Copyright (c) 2020-2024 Estonian Information System Authority
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ bool openLogFile(QFile& logFile)
     }
     QDir logFileDir {logFilePath};
     if (!logFileDir.mkpath(logFileDir.absolutePath())) {
-        std::cerr << "Unable to create logifile directory '"
+        std::cerr << "Unable to create logfile directory '"
                   << logFileDir.absolutePath().toStdString() << '\'' << std::endl;
         return false;
     }
