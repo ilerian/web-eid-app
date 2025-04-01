@@ -19,7 +19,8 @@ BUILD_TYPE=RelWithDebInfo
 #BUILD_TYPE=Release
 
 export QT_QPA_PLATFORM=offscreen
-export OPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1
+#export OPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1
+export OPENSSL_ROOT_DIR=/usr/local/opt/openssl@3
 export QT_DIR=/usr/local/opt/qt6/lib/cmake/Qt6
 export BUILD_TYPE
 export BUILD_DIR=cmake-build-relwithdebinfo

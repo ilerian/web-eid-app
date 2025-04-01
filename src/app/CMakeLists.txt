@@ -55,10 +55,11 @@ if(WIN32)
 
     add_custom_target(installer DEPENDS web-eid
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${AKISP11_DLL_PATH} ${CARD_LIB_DESTINATION_PATH}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ETOKEN_DLL_PATH} ${CARD_LIB_DESTINATION_PATH}
 
         COMMAND ${WIX_CMD} -o "${BASE_FILE}.msi"
         #Build MSI with QT
-        COMMAND ${WIX_CMD} -dAKISP11_DLL_PATH=${AKISP11_DLL_PATH} -d qt_path=${qtCore_install_prefix} -o "${BASE_FILE}.qt.msi"
+        COMMAND ${WIX_CMD} -dAKISP11_DLL_PATH=${AKISP11_DLL_PATH} -dETOKEN_DLL_PATH=${ETOKEN_DLL_PATH} -d qt_path=${qtCore_install_prefix} -o "${BASE_FILE}.qt.msi"
         WORKING_DIRECTORY $<TARGET_FILE_DIR:web-eid>
     )
     add_custom_target(bundle DEPENDS installer
@@ -95,17 +96,26 @@ if(WIN32)
     endif()
 elseif(APPLE)
     set(WEBEID_PATH /Applications/Utilities/web-eid.app/Contents/MacOS/web-eid)
+    set(WEBEID_LIB_DIR "/Applications/Utilities/web-eid.app/Contents/MacOS/lib")
+    #install(DIRECTORY DESTINATION ${WEBEID_LIB_DIR})
+
+
     set_source_files_properties(${CMAKE_SOURCE_DIR}/install/appicon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     set_source_files_properties(InfoPlist.strings PROPERTIES MACOSX_PACKAGE_LOCATION Resources/en.lproj)
     set_target_properties(web-eid PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/MacOSXBundleInfo.plist.in)
     configure_file(${CMAKE_SOURCE_DIR}/install/macos-postinstall.in root_firefox_scripts/postinstall @ONLY)
     install(TARGETS web-eid DESTINATION /Applications/Utilities COMPONENT main)
+
+    install(FILES ${AKISP11_DLL_PATH} ${ETOKEN_DLL_PATH} COMPONENT main DESTINATION ${WEBEID_LIB_DIR})
+
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eu.webeid.json COMPONENT chrome
         DESTINATION "/Library/Google/Chrome/NativeMessagingHosts")
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eu.webeid.firefox.json COMPONENT firefox
         DESTINATION "/Library/Application Support/Mozilla/NativeMessagingHosts" RENAME eu.webeid.json)
     install(FILES ${CMAKE_SOURCE_DIR}/install/ncibgoaomkmdpilpocfeponihegamlic.json COMPONENT chrome
         DESTINATION "/Library/Application Support/Google/Chrome/External Extensions")
+
+
     add_custom_target(macdeployqt DEPENDS web-eid
         COMMAND ${qtCore_install_prefix}/macdeployqt $<TARGET_BUNDLE_DIR:web-eid>
     )

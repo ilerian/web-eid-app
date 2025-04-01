@@ -26,7 +26,15 @@ else()
 endif()
 
 # Define the source path of the DLL file
-set(AKISP11_DLL_PATH "${CMAKE_SOURCE_DIR}/lib/akisp11.dll")
+if(WIN32)
+    # Define the source path of the DLL file for Windows
+    set(AKISP11_DLL_PATH "${CMAKE_SOURCE_DIR}/lib/win/akisp11.dll")
+    set(ETOKEN_DLL_PATH "${CMAKE_SOURCE_DIR}/lib/win/eToken.dll")
+elseif(APPLE)
+    # Define the source path of the DLL file for macOS
+    set(AKISP11_DLL_PATH "${CMAKE_SOURCE_DIR}/lib/mac/libakisp11.dylib")
+    set(ETOKEN_DLL_PATH "${CMAKE_SOURCE_DIR}/lib/mac/libeToken.dylib")
+endif()
 set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION_TWEAK})
 set(SEMVER_VERSION_STRING "${MACOSX_BUNDLE_SHORT_VERSION_STRING}+${PROJECT_VERSION_TWEAK}")
