@@ -101,9 +101,14 @@
           <File Source="$(var.qt_path)\..\plugins\tls\qopensslbackend$(var.qt_suffix).dll" />
         </Directory>
 <?endif?>
-          <Component Id="Akisp11Dll" Guid="12345678-1234-1234-1234-123456789abc">
+        <Directory Id="lib" Name="lib">
+          <Component Id="Akisp11Dll" Guid="e7b8a6d4-3f4b-4a2e-9b8e-1a2b3c4d5e6f">
                <File Source="$(var.AKISP11_DLL_PATH)" KeyPath="yes"/>
           </Component>
+          <Component Id="EtokenDll" Guid="a1b2c3d4-e5f6-7890-abcd-ef1234567890">
+              <File Source="$(var.ETOKEN_DLL_PATH)" KeyPath="yes"/>
+          </Component>
+        </Directory>
           <Component Id="ChromeEdge" Transitive="yes" Condition="(CHROMEINSTALL = 1 OR EDGEINSTALL = 1)">
             <File Source="$(var.json)" />
             <RegistryValue Root="HKLM" Type="string" Value="[INSTALLFOLDER]eu.webeid.json"

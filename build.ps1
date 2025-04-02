@@ -1,6 +1,6 @@
 #PowerShell -ExecutionPolicy Bypass
 param(
-  [string]$QT_ROOT = "c:\misc\Qt\6.6.3\msvc2019_64\",
+  [string]$QT_ROOT = "c:\misc\Qt\6.7.3\msvc2019_64\",
   [string]$VCPKG_ROOT = "C:\misc\vcpkg",
   [string]$BUILD_TYPE = "RelWithDebInfo"
 )

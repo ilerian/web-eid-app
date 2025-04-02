@@ -43,6 +43,8 @@ if(WIN32)
         -d FIREFOX_URL="${FIREFOX_URL}"
         -d FIREFOX_UUID="${FIREFOX_UUID}"
         -d app_path=$<TARGET_FILE:web-eid>
+        -d AKISP11_DLL_PATH="${AKISP11_DLL_PATH}"
+        -d ETOKEN_DLL_PATH="${ETOKEN_DLL_PATH}"
         ${CMAKE_SOURCE_DIR}/install/web-eid.wxs
         ${CMAKE_SOURCE_DIR}/install/WelcomeDlg.wxs
         ${CMAKE_SOURCE_DIR}/install/WixUI_Minimal.wxs
@@ -59,7 +61,7 @@ if(WIN32)
 
         COMMAND ${WIX_CMD} -o "${BASE_FILE}.msi"
         #Build MSI with QT
-        COMMAND ${WIX_CMD} -dAKISP11_DLL_PATH=${AKISP11_DLL_PATH} -dETOKEN_DLL_PATH=${ETOKEN_DLL_PATH} -d qt_path=${qtCore_install_prefix} -o "${BASE_FILE}.qt.msi"
+        COMMAND ${WIX_CMD}  -d qt_path=${qtCore_install_prefix} -o "${BASE_FILE}.qt.msi"
         WORKING_DIRECTORY $<TARGET_FILE_DIR:web-eid>
     )
     add_custom_target(bundle DEPENDS installer
