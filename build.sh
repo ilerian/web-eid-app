@@ -18,6 +18,7 @@ cd "$PROJECT_ROOT"
 BUILD_TYPE=RelWithDebInfo
 #BUILD_TYPE=Release
 
+export SIGNCERT="İLERİAN TECHNOLOGY LIMITED COMPANY"
 export QT_QPA_PLATFORM=offscreen
 #export OPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1
 export OPENSSL_ROOT_DIR=/usr/local/opt/openssl@3
