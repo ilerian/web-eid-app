@@ -23,7 +23,7 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package Name="Imza Yeri Web eID software" UpgradeCode="4f0e0fef-0dbc-481b-9d81-08921740f781"
-      Language="1033" Version="$(var.MSI_VERSION)" Codepage="1251" Manufacturer="ILERIAN" InstallerVersion="500">
+      Language="1055" Version="$(var.MSI_VERSION)" Codepage="1251" Manufacturer="ILERIAN" InstallerVersion="500">
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
     <Icon Id="web_eid.exe" SourceFile="$(var.app_path)" />
     <Property Id="ARPPRODUCTICON" Value="web_eid.exe" />
