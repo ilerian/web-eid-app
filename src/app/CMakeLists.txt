@@ -165,6 +165,10 @@ elseif(APPLE)
 
         COMMAND setfile -a E tmp/Web-eID.pkg
         COMMAND setfile -a V tmp/background.png
+
+        #Notarize the package if SIGNCERT is set
+        COMMAND xcrun notarytool submit tmp/Web-eID.pkg --key "${NOTARIZATION_KEY_PATH}" --key-id "${NOTARIZATION_KEY_ID}" --issuer "${NOTARIZATION_KEY_ISSUER}" --wait
+        COMMAND xcrun stapler staple tmp/Web-eID.pkg
         COMMAND hdiutil create web-eid_${PROJECT_VERSION}.dmg -ov -volname web-eid -srcfolder tmp
         COMMAND_EXPAND_LISTS
     )
@@ -177,18 +181,6 @@ elseif(APPLE)
                 --entitlements ${CMAKE_CURRENT_LIST_DIR}/web-eid.entitlements
                 $<TARGET_BUNDLE_DIR:web-eid>
         )
-        #Notarize the package if SIGNCERT is set
-        if(NOTARIZATION_KEY_PATH)
-            add_custom_command(TARGET installer POST_BUILD
-                COMMAND xcrun notarytool submit tmp/Web-eID.pkg --key "${NOTARIZATION_KEY_PATH}"
-                    --key-id "${NOTARIZATION_KEY_ID}" --issuer "${NOTARIZATION_KEY_ISSUER}"
-                    --wait
-                COMMAND xcrun stapler staple tmp/Web-eID.pkg
-            )
-        else()
-            message(STATUS "Notarization is skipped, NOTARIZATION_KEY_PATH is not set.")
-        endif()
-
         add_custom_command(TARGET installer POST_BUILD
             COMMAND codesign -f --timestamp -s "Developer ID Application: ${SIGNCERT}" web-eid_${PROJECT_VERSION}.dmg
         )
