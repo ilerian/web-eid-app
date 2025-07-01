@@ -18,6 +18,7 @@ cd "$PROJECT_ROOT"
 BUILD_TYPE=RelWithDebInfo
 #BUILD_TYPE=Release
 
+
 export SIGNCERT="İLERİAN TECHNOLOGY LIMITED COMPANY"
 export QT_QPA_PLATFORM=offscreen
 #export OPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1
@@ -26,6 +27,10 @@ export QT_DIR=/usr/local/opt/qt6/lib/cmake/Qt6
 export BUILD_TYPE
 export BUILD_DIR=cmake-build-relwithdebinfo
 #export BUILD_NUMBER=${{github.run_number}}
+export NOTARIZATION_KEY_PATH=$HOME/Documents/Apple_Connect_AuthKey_8NDJ2T2346.p8
+export NOTARIZATION_KEY_ID=8NDJ2T2346
+export NOTARIZATION_KEY_ISSUER=69a6de7e-d548-47e3-e053-5b8c7c11a4d1
+
 #export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
 #export MAKEFLAGS=-j3
 export MACOSX_DEPLOYMENT_TARGET=10.15

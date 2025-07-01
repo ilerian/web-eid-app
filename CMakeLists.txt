@@ -25,6 +25,25 @@ else()
     set(SIGNCERT_PARAM "")
 endif()
 
+if(DEFINED ENV{NOTARIZATION_KEY_PATH})
+    set(NOTARIZATION_KEY_PATH_PARAM $ENV{NOTARIZATION_KEY_PATH})
+else()
+    set(NOTARIZATION_KEY_PATH_PARAM "")
+endif()
+
+if(DEFINED ENV{NOTARIZATION_KEY_ID})
+    set(NOTARIZATION_KEY_ID_PARAM $ENV{NOTARIZATION_KEY_ID})
+else()
+    set(NOTARIZATION_KEY_ID_PARAM "")
+endif()
+
+if(DEFINED ENV{NOTARIZATION_KEY_ISSUER})
+    set(NOTARIZATION_KEY_ISSUER_PARAM $ENV{NOTARIZATION_KEY_ISSUER})
+else()
+    set(NOTARIZATION_KEY_ISSUER_PARAM "")
+endif()
+
+
 # Define the source path of the DLL file
 if(WIN32)
     # Define the source path of the DLL file for Windows
@@ -34,6 +53,7 @@ elseif(APPLE)
     # Define the source path of the DLL file for macOS
     set(AKISP11_DLL_PATH "${CMAKE_SOURCE_DIR}/lib/mac/libakisp11.dylib")
     set(ETOKEN_DLL_PATH "${CMAKE_SOURCE_DIR}/lib/mac/libeToken.dylib")
+    set(CRYPTO_DLL_PATH "${CMAKE_SOURCE_DIR}/lib/mac/libcrypto.3.dylib")
 endif()
 set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION_TWEAK})
@@ -53,6 +73,10 @@ set(FIREFOX_URL "https://addons.mozilla.org/firefox/downloads/latest/web-eid-web
 set(SIGNCERT ${SIGNCERT_PARAM} CACHE STRING "Common name of certificate to used sign binaries, empty skips signing  (Windows/macOS)")
 set(CROSSSIGNCERT "" CACHE STRING "Common name of certificate to used cross sign binaries, empty skips signing (Windows)")
 set(SAFARI_PROVISIONPROFILE "" CACHE STRING "Provision profile to include in application (macOS)")
+
+set(NOTARIZATION_KEY_PATH ${NOTARIZATION_KEY_PATH_PARAM} CACHE STRING "Path to notarization key (macOS)")
+set(NOTARIZATION_KEY_ID ${NOTARIZATION_KEY_ID_PARAM} CACHE STRING "Key ID for notarization (macOS)")
+set(NOTARIZATION_KEY_ISSUER ${NOTARIZATION_KEY_ISSUER_PARAM} CACHE STRING "Key issuer for notarization (macOS)")
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} 5.12.0 REQUIRED COMPONENTS Core Widgets Network Test LinguistTools Svg DBus)

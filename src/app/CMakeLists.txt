@@ -45,19 +45,16 @@ if(WIN32)
         -d app_path=$<TARGET_FILE:web-eid>
         -d AKISP11_DLL_PATH="${AKISP11_DLL_PATH}"
         -d ETOKEN_DLL_PATH="${ETOKEN_DLL_PATH}"
+        -d CRYPTO_DLL_PATH="${CRYPTO_DLL_PATH}"
         ${CMAKE_SOURCE_DIR}/install/web-eid.wxs
         ${CMAKE_SOURCE_DIR}/install/WelcomeDlg.wxs
         ${CMAKE_SOURCE_DIR}/install/WixUI_Minimal.wxs
     )
 
-    # Add a custom command to copy the DLL file to the destination path
-    #add_custom_command(TARGET installer POST_BUILD
-    #        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${AKISP11_DLL_PATH} ${CARD_LIB_DESTINATION_PATH}
-    #)
-
     add_custom_target(installer DEPENDS web-eid
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${AKISP11_DLL_PATH} ${CARD_LIB_DESTINATION_PATH}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ETOKEN_DLL_PATH} ${CARD_LIB_DESTINATION_PATH}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CRYPTO_DLL_PATH} ${CARD_LIB_DESTINATION_PATH}
 
         COMMAND ${WIX_CMD} -o "${BASE_FILE}.msi"
         #Build MSI with QT
@@ -99,8 +96,9 @@ if(WIN32)
 elseif(APPLE)
     set(WEBEID_PATH /Applications/Utilities/web-eid.app/Contents/MacOS/web-eid)
     set(WEBEID_LIB_DIR "/Applications/Utilities/web-eid.app/Contents/MacOS/lib")
-    #install(DIRECTORY DESTINATION ${WEBEID_LIB_DIR})
 
+    # Define the destination path in the build directory
+    set(CARD_LIB_DESTINATION_PATH "$<TARGET_BUNDLE_DIR:web-eid>/Contents/MacOS/lib/")
 
     set_source_files_properties(${CMAKE_SOURCE_DIR}/install/appicon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     set_source_files_properties(InfoPlist.strings PROPERTIES MACOSX_PACKAGE_LOCATION Resources/en.lproj)
@@ -108,7 +106,7 @@ elseif(APPLE)
     configure_file(${CMAKE_SOURCE_DIR}/install/macos-postinstall.in root_firefox_scripts/postinstall @ONLY)
     install(TARGETS web-eid DESTINATION /Applications/Utilities COMPONENT main)
 
-    install(FILES ${AKISP11_DLL_PATH} ${ETOKEN_DLL_PATH} COMPONENT main DESTINATION ${WEBEID_LIB_DIR})
+    #install(FILES ${AKISP11_DLL_PATH} ${ETOKEN_DLL_PATH} ${CRYPTO_DLL_PATH} COMPONENT main DESTINATION ${WEBEID_LIB_DIR})
 
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eu.webeid.json COMPONENT chrome
         DESTINATION "/Library/Google/Chrome/NativeMessagingHosts")
@@ -118,7 +116,14 @@ elseif(APPLE)
         DESTINATION "/Library/Application Support/Google/Chrome/External Extensions")
 
 
-    add_custom_target(macdeployqt DEPENDS web-eid
+    add_custom_target(deploy-card-libs DEPENDS web-eid
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CARD_LIB_DESTINATION_PATH}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${AKISP11_DLL_PATH} ${CARD_LIB_DESTINATION_PATH}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ETOKEN_DLL_PATH} ${CARD_LIB_DESTINATION_PATH}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CRYPTO_DLL_PATH} ${CARD_LIB_DESTINATION_PATH}
+            )
+
+    add_custom_target(macdeployqt DEPENDS web-eid deploy-card-libs
         COMMAND ${qtCore_install_prefix}/macdeployqt $<TARGET_BUNDLE_DIR:web-eid>
     )
     add_custom_target(installer-native DEPENDS macdeployqt
@@ -157,6 +162,7 @@ elseif(APPLE)
         COMMAND cp ${CMAKE_SOURCE_DIR}/install/DS_Store tmp/.DS_Store
         COMMAND cp web-eid_${PROJECT_VERSION}.pkg tmp/Web-eID.pkg
         COMMAND cp ${CMAKE_SOURCE_DIR}/install/background.png ${CMAKE_SOURCE_DIR}/install/uninstall.sh tmp
+
         COMMAND setfile -a E tmp/Web-eID.pkg
         COMMAND setfile -a V tmp/background.png
         COMMAND hdiutil create web-eid_${PROJECT_VERSION}.dmg -ov -volname web-eid -srcfolder tmp
@@ -171,9 +177,22 @@ elseif(APPLE)
                 --entitlements ${CMAKE_CURRENT_LIST_DIR}/web-eid.entitlements
                 $<TARGET_BUNDLE_DIR:web-eid>
         )
+        #Notarize the package if SIGNCERT is set
+        if(NOTARIZATION_KEY_PATH)
+            add_custom_command(TARGET installer POST_BUILD
+                COMMAND xcrun notarytool submit tmp/Web-eID.pkg --key "${NOTARIZATION_KEY_PATH}"
+                    --key-id "${NOTARIZATION_KEY_ID}" --issuer "${NOTARIZATION_KEY_ISSUER}"
+                    --wait
+                COMMAND xcrun stapler staple tmp/Web-eID.pkg
+            )
+        else()
+            message(STATUS "Notarization is skipped, NOTARIZATION_KEY_PATH is not set.")
+        endif()
+
         add_custom_command(TARGET installer POST_BUILD
             COMMAND codesign -f --timestamp -s "Developer ID Application: ${SIGNCERT}" web-eid_${PROJECT_VERSION}.dmg
         )
+
     endif()
 else()
     option(BUNDLE_XPI "Download and bundle the Firefox extension" OFF)
