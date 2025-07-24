@@ -104,6 +104,9 @@ elseif(APPLE)
     set_source_files_properties(InfoPlist.strings PROPERTIES MACOSX_PACKAGE_LOCATION Resources/en.lproj)
     set_target_properties(web-eid PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/MacOSXBundleInfo.plist.in)
     configure_file(${CMAKE_SOURCE_DIR}/install/macos-postinstall.in root_firefox_scripts/postinstall @ONLY)
+    configure_file(${CMAKE_SOURCE_DIR}/install/macos-native-preinstall.in root_native_scripts/preinstall @ONLY)
+    configure_file(${CMAKE_SOURCE_DIR}/install/macos-native-postinstall.in root_native_scripts/postinstall @ONLY)
+
     install(TARGETS web-eid DESTINATION /Applications/Utilities COMPONENT main)
 
     #install(FILES ${AKISP11_DLL_PATH} ${ETOKEN_DLL_PATH} ${CRYPTO_DLL_PATH} COMPONENT main DESTINATION ${WEBEID_LIB_DIR})
@@ -129,9 +132,12 @@ elseif(APPLE)
     add_custom_target(installer-native DEPENDS macdeployqt
         COMMAND rm -rf root_native
         COMMAND DESTDIR=root_native ${CMAKE_COMMAND} --install . --component main
-        COMMAND pkgbuild --root root_native --identifier "eu.web-eid.$<TARGET_NAME:web-eid>"
+        COMMAND pkgbuild --root root_native --scripts root_native_scripts --analyze root_native_analyzed.plist
+        COMMAND plutil -replace BundleIsRelocatable -bool NO root_native_analyzed.plist
+        COMMAND pkgbuild --root root_native --scripts root_native_scripts --identifier "eu.web-eid.$<TARGET_NAME:web-eid>"
             "$<$<BOOL:${SIGNCERT}>:--sign;${SIGNCERT}>"
             --version "${PROJECT_VERSION}" $<TARGET_NAME:web-eid>-native_${PROJECT_VERSION}.pkg
+            --component-plist root_native_analyzed.plist
         COMMAND_EXPAND_LISTS
     )
     add_custom_target(installer-firefox DEPENDS installer-native
@@ -156,7 +162,9 @@ elseif(APPLE)
         COMMAND cp web-eid-chrome_*.pkg packages/web-eid-chrome.pkg
         COMMAND cp web-eid-firefox_*.pkg packages/web-eid-firefox.pkg
         COMMAND productbuild --distribution ${CMAKE_SOURCE_DIR}/install/distribution.xml
-            "$<$<BOOL:${SIGNCERT}>:--sign;Developer ID Installer: ${SIGNCERT}>" --resources ${CMAKE_SOURCE_DIR}/install/
+            "$<$<BOOL:${SIGNCERT}>:--sign>"
+            "$<$<BOOL:${SIGNCERT}>:Developer ID Installer: ${SIGNCERT}>"
+            --resources ${CMAKE_SOURCE_DIR}/install/
             --version "${PROJECT_VERSION}" --package-path packages/ web-eid_${PROJECT_VERSION}.pkg
         COMMAND mkdir -p tmp
         COMMAND cp ${CMAKE_SOURCE_DIR}/install/DS_Store tmp/.DS_Store
@@ -166,13 +174,14 @@ elseif(APPLE)
         COMMAND setfile -a E tmp/Web-eID.pkg
         COMMAND setfile -a V tmp/background.png
 
-        #Notarize the package if SIGNCERT is set
-        COMMAND xcrun notarytool submit tmp/Web-eID.pkg --key "${NOTARIZATION_KEY_PATH}" --key-id "${NOTARIZATION_KEY_ID}" --issuer "${NOTARIZATION_KEY_ISSUER}" --wait
-        COMMAND xcrun stapler staple tmp/Web-eID.pkg
-        COMMAND hdiutil create web-eid_${PROJECT_VERSION}.dmg -ov -volname web-eid -srcfolder tmp
-        COMMAND_EXPAND_LISTS
     )
     if(SIGNCERT)
+
+        add_custom_command( TARGET installer POST_BUILD
+                COMMAND xcrun notarytool submit tmp/Web-eID.pkg --key "${NOTARIZATION_KEY_PATH}" --key-id "${NOTARIZATION_KEY_ID}" --issuer "${NOTARIZATION_KEY_ISSUER}" --wait
+                COMMAND xcrun stapler staple tmp/Web-eID.pkg
+        )
+
         add_custom_command(TARGET macdeployqt POST_BUILD
             COMMAND codesign -f -o runtime --timestamp -s "Developer ID Application: ${SIGNCERT}"
                 $<TARGET_BUNDLE_CONTENT_DIR:web-eid>/Frameworks/*.*
@@ -181,10 +190,18 @@ elseif(APPLE)
                 --entitlements ${CMAKE_CURRENT_LIST_DIR}/web-eid.entitlements
                 $<TARGET_BUNDLE_DIR:web-eid>
         )
-        add_custom_command(TARGET installer POST_BUILD
-            COMMAND codesign -f --timestamp -s "Developer ID Application: ${SIGNCERT}" web-eid_${PROJECT_VERSION}.dmg
-        )
 
+    endif()
+
+    add_custom_command( TARGET installer POST_BUILD
+        COMMAND hdiutil create web-eid_${PROJECT_VERSION}.dmg -ov -volname web-eid -srcfolder tmp
+        COMMAND_EXPAND_LISTS
+    )
+
+    if (SIGNCERT)
+        add_custom_command(TARGET installer POST_BUILD
+                COMMAND codesign -f --timestamp -s "Developer ID Application: ${SIGNCERT}" web-eid_${PROJECT_VERSION}.dmg
+                )
     endif()
 else()
     option(BUNDLE_XPI "Download and bundle the Firefox extension" OFF)

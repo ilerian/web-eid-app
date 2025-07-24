@@ -32,5 +32,7 @@
 	<string>${CMAKE_OSX_DEPLOYMENT_TARGET}</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>BundleIsRelocatable</key>
+	<false/>
 </dict>
 </plist>
