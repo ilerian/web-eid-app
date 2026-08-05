@@ -39,7 +39,13 @@ export NOTARIZATION_KEY_ISSUER=69a6de7e-d548-47e3-e053-5b8c7c11a4d1
 export MACOSX_DEPLOYMENT_TARGET=10.15
 
 #lupdate src/ -ts ./src/ui/translations/*.ts
-cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE  -B $BUILD_DIR -S .
+# Qt6's FindWrapOpenGL.cmake links -framework AGL unconditionally, but AGL was removed from
+# the macOS 26 SDK. Substitute the OpenGL framework to keep the link working.
+AGL_WORKAROUND=""
+if [[ ! -e "$(xcrun --show-sdk-path)/System/Library/Frameworks/AGL.framework" ]]; then
+    AGL_WORKAROUND="-DWrapOpenGL_AGL=$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
+fi
+cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE $AGL_WORKAROUND -B $BUILD_DIR -S .
 cmake --build $BUILD_DIR --config $BUILD_TYPE
 cmake --build $BUILD_DIR --config $BUILD_TYPE --target installer -- VERBOSE=1
 #cmake --build $BUILD_DIR --config $BUILD_TYPE --target installer-safari -- VERBOSE=1
